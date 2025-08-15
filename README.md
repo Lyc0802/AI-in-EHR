@@ -1,4 +1,3 @@
-<img width="401" height="82" alt="image" src="https://github.com/user-attachments/assets/78d8eaeb-53fa-48db-b51b-90299bfe6fce" /># AI-in-EHR-
 Use machine learning models to analyze vital signs, laboratory data, past medical records, and demographic information to predict disease risk in advance.
 
 * Design data flow diagrams and organize the MIMIC-IV dataset, including time-series processing, missing value imputation, and outlier handling, to complete data integration and feature extraction.
