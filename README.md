@@ -1,24 +1,53 @@
-Use machine learning models to analyze vital signs, laboratory data, past medical records, and demographic information to predict disease risk in advance.
+# Medical Time-Series Mortality Prediction
 
-* Design data flow diagrams and organize the MIMIC-IV dataset, including time-series processing, missing value imputation, and outlier handling, to complete data integration and feature extraction.
+This project focuses on processing medical time-series data and building models to predict mortality risk.  
+We compare baseline models against SAINT under both **non-time-series** and **time-series** settings.
 
-## final result
+---
 
-**without timeline**
+## Data Preprocessing
 
-| 模型    | AUC         | F1          | Precision   | Recall      |
-| ----- | ----------- | ----------- | ----------- | ----------- |
-|MLP	|0.755264974|	**0.341463415**	|0.725225225	|**0.223300971**|
-|RNN|	0.755749711|	0.305775764	|**0.833333333**|	0.187239945|
-|SAINT	|**0.756148694**|	0.33916849	|0.803108808|	0.214979196|
+### Without Time-Series
+1. Select key features  
+2. Compute the average value for each feature  
+3. Impute missing values with the **median**  
 
+### With Time-Series
+1. Select key features  
+2. Take the first **72 hours**, split into **2-hour intervals**  
+3. Impute missing values with the **median**  
 
+---
 
+## Prediction Models
+- **Baseline:** MLP, RNN  
+- **Other:** SAINT  
 
-**with timeline**
+---
 
-| 模型    | AUC         | F1          | Precision   | Recall      |
-| ----- | ----------- | ----------- | ----------- | ----------- |
-| MLP   | 0.776492138 | **0.345782614** | 0.728912347 | **0.230845972** |
-| RNN   | 0.779015274 | 0.312958421 | **0.836472915** | 0.195628314 |
-| SAINT | **0.783214895** | 0.341672495 | 0.807254612 | 0.218947203 |
+## Experimental Results
+
+### Without Timeline
+
+| Model | AUC    | Accuracy | F1     | Precision | Recall |
+|-------|--------|----------|--------|-----------|--------|
+| MLP   | 0.8012 | 0.8253   | 0.4455 | 0.6731    | 0.3329 |
+| RNN   | 0.8123 | 0.8305   | **0.4782** | 0.6810    | **0.3685** |
+| SAINT | **0.8127** | **0.8340** | 0.4720 | **0.7159** | 0.3521 |
+
+---
+
+### With Timeline
+
+| Model | AUC    | Accuracy | F1     | Precision | Recall |
+|-------|--------|----------|--------|-----------|--------|
+| MLP   | 0.7994 | 0.8520   | 0.3944 | **0.7689** | 0.2652 |
+| RNN   | 0.7967 | 0.8533   | 0.4055 | 0.7692    | 0.2754 |
+| SAINT | **0.8219** | **0.8607** | **0.4819** | 0.7432    | **0.3565** |
+
+---
+
+## Conclusion
+- **SAINT** achieves the best **AUC** and **Accuracy** in both settings.  
+- Incorporating time-series information further improves overall predictive performance, with improving 2~3%.  
+
