@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader, random_split
-from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score
+from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score, accuracy_score
 from tqdm import tqdm
 from scipy.special import expit  # sigmoid function
 
@@ -21,6 +21,7 @@ class TimeSeriesDataset(Dataset):
             y_clean = 1.0 if y >= 0.5 else 0.0  # 保證是 0 或 1
             self.inputs.append(torch.tensor(x, dtype=torch.float32))
             self.labels.append(torch.tensor(y_clean, dtype=torch.float32))
+        
         self.inputs = torch.stack(self.inputs)
         self.labels = torch.stack(self.labels)
 
@@ -81,7 +82,7 @@ class SAINT(nn.Module):
 # ----------------- Training Function -----------------
 def train_model(model, train_loader, test_loader, device, epochs=40):
     model = model.to(device)
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = optim.Adam(model.parameters(), lr=1e-4)
     criterion = nn.BCEWithLogitsLoss()
     train_loss, test_loss = [], []
     best_preds, best_labels = [], []
@@ -132,9 +133,10 @@ def evaluate(preds_logits, labels):
     preds_bin = (preds_prob >= 0.5).astype(int)
     return {
         "AUC": roc_auc_score(labels, preds_prob),
+        "Accuracy": accuracy_score(labels, preds_bin),
         "F1": f1_score(labels, preds_bin),
-        "Precision": precision_score(labels, preds_bin),
-        "Recall": recall_score(labels, preds_bin)
+        "Precision": precision_score(labels, preds_bin, zero_division=0),
+        "Recall": recall_score(labels, preds_bin, zero_division=0)
     }
 
 # ----------------- Main -----------------
@@ -185,14 +187,14 @@ def main():
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig("loss_comparison.png")
-    print("📊 Saved: loss_comparison.png")
+    plt.savefig("loss_comparison_with_timeline.png")
+    print("📊 Saved: loss_comparison_with_timeline.png")
 
     # Print metrics
     df_metrics = pd.DataFrame(metrics).T
     print("\n📈 Evaluation Metrics:")
     print(df_metrics.round(4))
-    df_metrics.to_csv("model_metrics.csv")
+    df_metrics.to_csv("model_metrics_timeline.csv")
     print("📁 Saved: model_metrics.csv")
 
     # Descriptive analysis

@@ -3,13 +3,13 @@ import numpy as np
 from tqdm import tqdm
 
 # 設定參數
-TIME_LIMIT_HOURS = 48  # 只取入院後 48 小時內的資料
-TIME_BIN_HOURS = 1     # 每小時為一格
+TIME_LIMIT_HOURS = 72  # 只取入院後 72 小時內的資料
+TIME_BIN_HOURS = 2     # 每2小時為一格
 N_BINS = TIME_LIMIT_HOURS // TIME_BIN_HOURS
 
 # 讀取資料
-labevents = pd.read_csv("data/hosp/_labevents.csv")
-chartevents = pd.read_csv("data/icu/_chartevents.csv")
+labevents = pd.read_csv("data/icu/_labevents_filtered.csv")
+chartevents = pd.read_csv("data/icu/_chartevents_filtered.csv")
 patients = pd.read_csv("data/hosp/_patients.csv")
 admissions = pd.read_csv("data/hosp/_admissions.csv")
 label_death = pd.read_csv("data/label/_label_death.csv")
@@ -35,6 +35,7 @@ combined = pd.concat([labevents_filtered, chartevents_filtered])
 
 # 時間處理與合併 patient/admission info
 combined['charttime'] = pd.to_datetime(combined['charttime'], errors='coerce')
+patients["gender"] = patients["gender"].apply(lambda x: 0 if x == 'M' else 1) 
 patients['gender'] = patients['gender'].fillna(-1)
 combined = combined.merge(patients[['subject_id', 'gender', 'anchor_age']], on='subject_id', how='left')
 admissions['admittime'] = pd.to_datetime(admissions['admittime'], errors='coerce')
@@ -88,11 +89,8 @@ for (sid, hid), group in tqdm(grouped):
 
 # 類別變量處理（gender）
 for k in label_dict.keys():
-    if isinstance(patients[patients['subject_id'] == k[0]]['gender'].values, np.ndarray):
-        g = patients[patients['subject_id'] == k[0]]['gender'].values
-        label_dict[k] = (label_dict[k], g[0] if len(g) > 0 else -1)
-    else:
-        label_dict[k] = (label_dict[k], -1)
+    g = patients[patients['subject_id'] == k[0]]['gender'].values
+    label_dict[k] = (label_dict[k], g[0] if len(g) > 0 else -1)
 
 # 儲存結果為 npz 檔
 np.savez("timeseries_input_label.npz", inputs=tensor_dict, labels=label_dict)
